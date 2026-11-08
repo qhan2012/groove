@@ -1,0 +1,19 @@
+# For Claude, configure authentication according to the Claude Agent SDK docs.
+# No model API keys should be committed to this file.
+backends:
+  claude:
+    kind: claude
+    max_turns: 6
+    # Keep tools disabled by default. For approved read-only work:
+    # allowed_tools: [Read, Grep, Glob]
+    allowed_tools: []
+    # workspace: ../workspace
+  local:
+    kind: openai_compatible
+    base_url: http://localhost:11434/v1
+    max_tool_rounds: 4
+agents:
+  planner: {backend: claude, model: sonnet}
+  executor: {backend: claude, model: sonnet}
+  judger: {backend: local, model: replace-with-ollama-model}
+max_iterations: 5
