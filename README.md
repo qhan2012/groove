@@ -1,6 +1,6 @@
 # Groove
 
-**A groovy RSI agent framework.**
+**A groovy RSI framework.**
 
 Groove is a lightweight, general-purpose **Recursive Self-Improvement (RSI)** agent framework. It is designed around a simple **Planner → Executor → Judger** workflow, swappable LLM backends, and reusable Skills, Strategies, and Knowledge.
 
