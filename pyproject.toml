@@ -11,6 +11,9 @@ dependencies = ["pydantic>=2,<3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+local = ["openai>=1.0,<3", "PyYAML>=6,<7"]
+claude = ["claude-agent-sdk>=0.1", "PyYAML>=6,<7"]
+models = ["PyYAML>=6,<7", "openai>=1.0,<3", "claude-agent-sdk>=0.1"]
 
 [project.scripts]
 groove = "groove.cli:main"
@@ -21,3 +24,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+groove = ["role_prompts/*.md"]

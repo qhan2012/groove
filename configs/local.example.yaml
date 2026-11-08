@@ -1,0 +1,15 @@
+# Copy and edit model names after starting your local host.
+# LM Studio: http://localhost:1234/v1
+# Ollama:    http://localhost:11434/v1
+# vLLM:     http://localhost:8000/v1
+backends:
+  local:
+    kind: openai_compatible
+    base_url: http://localhost:1234/v1
+    max_tool_rounds: 4
+    timeout_seconds: 120
+agents:
+  planner: {backend: local, model: replace-with-loaded-model}
+  executor: {backend: local, model: replace-with-loaded-model}
+  judger: {backend: local, model: replace-with-loaded-model}
+max_iterations: 5
