@@ -2,42 +2,38 @@
 
 **A groovy RSI framework.**
 
-Groove is a lightweight, general-purpose **Recursive Self-Improvement (RSI)** agent framework. It is designed around a simple **Planner → Executor → Judger** workflow, swappable LLM backends, and reusable Skills, Strategies, and Knowledge.
+Groove is a lightweight, general-purpose framework for **Recursive Self-Improvement (RSI)**, built around a Planner → Executor → Judger loop. This is **PR 1**, the small, runnable foundation; it runs **deterministic mock agents only**, not real LLM tasks.
 
-> **Project status:** Architecture and source-code scaffold proposals. The runnable implementation has not been built yet.
+## Quick start
 
-## Design at a glance
+Requires Python 3.11+.
 
-```mermaid
-flowchart LR
-    O[Python Orchestrator] --> P[Planner]
-    P --> E[Executor]
-    E --> J[Judger]
-    J -->|Continue| P
-    J -->|Complete / Stop| X[Exit]
-    S[(Run State & Artifacts)] -.-> P
-    J -.-> S
-    L[(Skills / Strategies / KB)] -.-> P
-    L -.-> E
+```bash
+python -m pip install -e '.[dev]'
+groove demo
+groove inspect <run-id>
+pytest -q
 ```
 
-- **Three stateless roles:** Planner chooses the next action, Executor performs it, and Judger verifies the outcome and decides whether the goal is complete.
-- **Execution-only orchestrator:** A small deterministic Python loop coordinates the roles without making domain decisions or directly editing business state.
-- **Explicit run history:** A persistence API records plans, results, judgments, evidence, and immutable artifacts.
-- **Versioned learning assets:** Reusable **Skills**, **Strategies**, and **Knowledge Base (KB)** are separate from the state of an individual run.
-- **Gated RSI:** Candidate changes to Skills, Strategies, or KB are evaluated before promotion. Role prompts, the orchestrator, and acceptance criteria are outside automatic RSI scope in V1.
-- **Pluggable backends:** The proposed adapter layer supports Claude Agent SDK and OpenAI-compatible local inference hosts such as LM Studio, Ollama, and vLLM.
+Alternatively, from a source checkout without installing, use `PYTHONPATH=src python -m groove demo` after installing Pydantic. Store files default to `.groove/` (gitignored); override with `--data-dir` before the subcommand.
 
-## Documentation
+The mock demo runs twice, writes content-addressed evidence files, and returns `COMPLETED`. **This is a demonstration of workflow machinery, not evidence of solving arbitrary goals.**
 
-- [System architecture](docs/architecture.md) — decisions, agent contracts, run state, strategy hierarchy, and RSI boundaries.
-- [Implementation proposal](docs/implementation.md) — Python package scaffold, backend adapters, interfaces, persistence, testing, and implementation roadmap.
+## Architecture
 
-## Planned implementation
+- **Planner** builds an ActionPlan from goal, immutable acceptance criteria, history, and run state.
+- **Executor** runs the plan and returns an ExecutionResult, optionally writing immutable artifact files through a restricted writer interface.
+- **Judger** evaluates the result, returns `CONTINUE`, `COMPLETE`, or `STOP`, and proposes a Run State Delta.
+- **Orchestrator** is an execution-only loop. Runtime validates role outputs and writes all events through the Store.
+- **Store** persists run metadata, stage events, state deltas, and hash-addressed artifacts using SQLite + local files.
+- **Learning** assets (`skills/`, `strategies/`, `knowledge/`) are separate from per-run state. Automatic RSI promotion is not part of PR 1.
 
-1. **Minimal loop:** Mock Planner / Executor / Judger with typed contracts and durable per-step recording.
-2. **Real backends:** Claude Agent SDK integration and OpenAI-compatible local model adapter with a bounded tool loop.
-3. **Reliability:** Crash recovery, timeouts, resource budgets, immutable artifacts, and verification gates.
-4. **RSI:** Candidate learning deltas, baseline evaluation, promotion, and rollback.
+A minimal completion gate rejects judgments without a successful execution, `PASS` verification and matching stored artifact evidence. **It checks evidence provenance, not the semantic truth of arbitrary goals.** Task-specific deterministic verification is required before treating an LLM Judger as authoritative in production.
 
-Groove aims to keep the **workflow small and predictable**, while allowing its **learning assets to evolve**.
+The initial implementation intentionally fails closed on incomplete rounds rather than replaying side-effectful work automatically. Crash resume and retries come later.
+
+## Planned integrations
+
+Future changes will add Claude Agent SDK and an OpenAI-compatible adapter for LM Studio, Ollama and vLLM, configurable by role. The three agent roles and contracts will remain independent of the model backend.
+
+See [architecture](docs/architecture.md) and [implementation proposal](docs/implementation.md).
